@@ -36,7 +36,7 @@ memtoreg, regwrite, regdst;
 wire [2:0]Alucontrol;
 
 Clk_div	#(
-	.HALF_DIV(1)
+	.HALF_DIV(50000000)
 	)
 	div(
 	.hclk(hclk), 
