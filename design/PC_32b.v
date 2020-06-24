@@ -26,14 +26,16 @@ module PC_32b(
 	output reg [31:0]addr_out
     );
     
-    always @(posedge clk or posedge clr) begin
+    always @(negedge clk or posedge clr) begin
     		if (clr) begin
     			addr_out <= 32'h0; 			
     		end
 
     		else begin
     			addr_out <= addr_in;
+
     		end
+
     	end	
     	
 endmodule

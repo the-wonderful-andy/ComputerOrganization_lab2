@@ -21,27 +21,31 @@
 
 
 module top(
-	input hclk, 
-	output jump, branch, alusrc, memwrite, 
-	memtoreg, regwrite, regdst, 
-	output [2:0]Alucontrol
+	input hclk, rst,
+	output [6:0]seg, 
+	output [7:0]ans, 
+	output [10:0]led
     );
 
 wire lclk;
 wire [31:0]nextInstAddr, instAddr;
-wire [31:0]inst; //instruction
+wire [31:0]instr; //instruction
 
-Clk_div #(
-	.HALF_DIV(5)
+wire jump, branch, alusrc, memwrite, 
+memtoreg, regwrite, regdst;
+wire [2:0]Alucontrol;
+
+Clk_div	#(
+	.HALF_DIV(1)
 	)
 	div(
-	.hclk(hckl), 
+	.hclk(hclk), 
 	.lclk(lclk)
 	);
 
 PC_32b pc(
 	.clk(lclk), 
-	.clr(1'b0), 
+	.clr(rst), 
 	.addr_in(nextInstAddr), 
 	.addr_out(instAddr)
 	);
@@ -52,14 +56,37 @@ PC_adder_32b padder(
 	.addr_out(nextInstAddr)
 	);
 
-instruction_mem instmem(
+blk_mem_gen_0 instmem(
   .clka(lclk),    // input wire clka
   .ena(1),      // input wire ena
   .wea(0),      // input wire [0 : 0] wea
-  .addra(instAddr[9:0]),  // input wire [9 : 0] addra
+  .addra(instAddr),  // input wire [9 : 0] addra
   .dina(32'b0),    // input wire [31 : 0] dina
-  .douta(inst)  // output wire [31 : 0] douta
+  .douta(instr)  // output wire [31 : 0] douta
 );
+
+controller contr(
+	.instr(instr), 
+	.jump(jump), 
+	.branch(branch), 
+	.alusrc(alusrc), 
+	.memwrite(memwrite), 
+	.memtoreg(memtoreg), 
+	.regwrite(regwrite), 
+	.regdst(regdst), 
+	.Alucontrol(Alucontrol)
+	);
+
+display disp(
+	.clk(hclk), 
+	.reset(rst), 
+	.s(instr), 
+	.seg(seg), 
+	.ans(ans)
+	);
+
+assign led = {Alucontrol, branch, jump, regwrite, regdst, 
+				alusrc, 1'b0, memwrite, memtoreg};
 
 
 
